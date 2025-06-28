@@ -36,7 +36,8 @@ app.post("/solana-webhook", (req: Request, res: Response) => {
   existingData.push(event);
   fs.writeFileSync("webhookJson.json", JSON.stringify(existingData, null, 2));
 
-  console.log("Webhook data posted");
+  console.log("Webhook data posted- ", event);
+  console.log("Entire data- ", existingData)
   res.status(200).json({ message: event });
 });
 
