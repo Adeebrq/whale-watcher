@@ -1,3 +1,6 @@
+let cachedPrice: number | null= null
+let lastFetchedTime: number=0
+
 
 export function isMemecoin(token: string){
     const stablecoins=[
@@ -9,24 +12,33 @@ export function isMemecoin(token: string){
 }
 
 
-export async function extractBuys(transactions : any){
-    const buys=[]
-    let solPrice= null
-
+async function solPriceFetch ():Promise<number | null>{
+    let now= Date.now()
+    if(cachedPrice && now - lastFetchedTime < 60_000){
+        return cachedPrice
+    }
+    
     try {
         const solUsdFetch= await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd")
-
         if(!solUsdFetch.ok){
             throw new Error("API call for sol price failed")
         }
 
         const solUsd= await solUsdFetch.json()
         if(solUsd?.solana?.usd){
-            solPrice= solUsd.solana.usd
+            cachedPrice= solUsd.solana.usd
+            lastFetchedTime= now
         }
+        return cachedPrice
     } catch (error) {
         console.log("error fetching usd price",  error)
+        return null;
     }
+}
+
+export async function extractBuys(transactions : any){
+    const buys=[]
+    let solPrice= await solPriceFetch()
 
 
 
