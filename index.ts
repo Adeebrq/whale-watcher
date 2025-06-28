@@ -7,6 +7,13 @@ app.use(express.json())
 app.use(cors())
 
 let data: any = null
+try {
+    const datafetch= fs.readFileSync("webhookJson.json", "utf-8")
+    data= JSON.parse(datafetch)
+    console.log("Fetched data ")
+} catch (error) {
+    console.log("error occured", error)
+}
 
 app.get("/api", (req : Request, res: Response)=>{
     console.log("Server up!")
@@ -24,9 +31,8 @@ app.post("/solana-webhook", (req: Request, res: Response)=>{
 })
 
 app.get("/webhook", (req: Request, res: Response)=>{
-    res.status(200).json(data)
     if(data === null){
-        res.status(200).json("No data is available in webhook")
+        res.status(404).json("No data is available in webhook")
     }else{
         // res.status(200).json(data)
         const datafetch= fs.readFileSync("webhookJson.json", 'utf-8')
