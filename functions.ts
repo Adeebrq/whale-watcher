@@ -1,0 +1,50 @@
+
+export function isMemecoin(token: string){
+    const stablecoins=[
+        "So11111111111111111111111111111111111111112", // SOL wrapped
+        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+        "Es9vMFrzaCERdhvjPYZ6zUM7XmoeR4eUuKXPX3uWzv1J"  // USDT
+    ]
+    return !stablecoins.includes(token)
+}
+
+
+export function extractBuys(transactions : any){
+    const buys=[]
+
+    for (const tx of transactions ){
+        let solSpentBy= null
+        let solSpent = 0
+        let memecoinReceived= null
+
+        for (const acc of tx.accountData){
+
+            if(acc.nativeBalanceChange < 0){
+                solSpentBy = acc.account;
+                solSpent += Math.abs(acc.nativeBalanceChange)
+            }
+
+            for (const tokenChange of acc.tokenBalanceChanges ){
+                if(
+                    parseFloat(tokenChange.rawTokenAmount.tokenAmount) > 0 &&
+                    isMemecoin(tokenChange.mint)
+                ){
+                    memecoinReceived={
+                        user: tokenChange.userAccount,
+                        mint: tokenChange.mint,
+                    }
+                }
+            }
+        }
+
+        if(solSpentBy && memecoinReceived && solSpentBy === memecoinReceived.user){
+            buys.push({
+                buyer: solSpentBy,
+                mint: memecoinReceived.mint,
+                solSpent: solSpent /1e9
+            })
+        }
+    }
+
+    return buys;
+}

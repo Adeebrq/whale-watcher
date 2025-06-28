@@ -2,11 +2,16 @@ import express, { Request, Response } from "express";
 const app = express();
 import cors from "cors";
 import fs from "fs";
+import {extractBuys} from "./functions"
 
 app.use(express.json());
 app.use(cors());
 
 let data: any = null;
+let buys: any= null
+
+
+
 try {
   const datafetch = fs.readFileSync("webhookJson.json", "utf-8");
   data = JSON.parse(datafetch);
@@ -19,6 +24,7 @@ app.get("/api", (req: Request, res: Response) => {
   console.log("Server up!");
   res.status(200).json("server is up");
 });
+
 
 app.post("/solana-webhook", (req: Request, res: Response) => {
   const event = req.body;
@@ -41,6 +47,7 @@ app.post("/solana-webhook", (req: Request, res: Response) => {
   res.status(200).json({ message: event });
 });
 
+
 app.get("/webhook", (req: Request, res: Response) => {
   if (data === null) {
     res.status(404).json("No data is available in webhook");
@@ -54,4 +61,16 @@ app.get("/webhook", (req: Request, res: Response) => {
     }
   }
 });
+
+
+app.get("/buys",(req: Request, res: Response)=>{
+    buys= extractBuys(data)
+    if(buys){
+     res.status(200).json(buys)
+    }else{
+        res.status(404).json("Buyers data not found")
+    }
+})
+
+
 app.listen(3030, () => console.log("server started on port 3030"));
