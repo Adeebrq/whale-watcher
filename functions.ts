@@ -15,8 +15,13 @@ export async function extractBuys(transactions : any){
 
     try {
         const solUsdFetch= await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd")
+
+        if(!solUsdFetch.ok){
+            throw new Error("API call for sol price failed")
+        }
+
         const solUsd= await solUsdFetch.json()
-        if(solUsd){
+        if(solUsd?.solana?.usd){
             solPrice= solUsd.solana.usd
         }
     } catch (error) {
@@ -56,7 +61,7 @@ export async function extractBuys(transactions : any){
                 buyer: solSpentBy,
                 mint: memecoinReceived.mint,
                 solSpent: solSpent /1e9,
-                usdBalance: solSpent /1e9 * solPrice
+                usdBalance: solPrice !== null ? (solSpent /1e9) * solPrice : null
             })
         }
     }
