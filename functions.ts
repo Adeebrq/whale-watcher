@@ -9,22 +9,36 @@ export function isMemecoin(token: string){
 }
 
 
-export function extractBuys(transactions : any){
+export async function extractBuys(transactions : any){
     const buys=[]
+    let solPrice= null
+
+    try {
+        const solUsdFetch= await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd")
+        const solUsd= await solUsdFetch.json()
+        if(solUsd){
+            solPrice= solUsd.solana.usd
+        }
+    } catch (error) {
+        console.log("error fetching usd price",  error)
+    }
+
+
 
     for (const tx of transactions ){
         let solSpentBy= null
         let solSpent = 0
         let memecoinReceived= null
 
-        for (const acc of tx.accountData){
+
+        for (const acc of tx.accountData || []){
 
             if(acc.nativeBalanceChange < 0){
                 solSpentBy = acc.account;
                 solSpent += Math.abs(acc.nativeBalanceChange)
             }
 
-            for (const tokenChange of acc.tokenBalanceChanges ){
+            for (const tokenChange of acc.tokenBalanceChanges){
                 if(
                     parseFloat(tokenChange.rawTokenAmount.tokenAmount) > 0 &&
                     isMemecoin(tokenChange.mint)
@@ -41,7 +55,8 @@ export function extractBuys(transactions : any){
             buys.push({
                 buyer: solSpentBy,
                 mint: memecoinReceived.mint,
-                solSpent: solSpent /1e9
+                solSpent: solSpent /1e9,
+                usdBalance: solSpent /1e9 * solPrice
             })
         }
     }
