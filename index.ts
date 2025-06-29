@@ -11,6 +11,14 @@ let data: any = null;
 let buyHistory: any = null;
 
 try {
+
+    if (!fs.existsSync("webhookJson.json",)) {
+        fs.writeFileSync("webhookJson.json", "[]"); // Create empty array
+      }
+      if (!fs.existsSync("buys.json")) {
+        fs.writeFileSync("buys.json", "[]");
+      }
+
   const datafetch = fs.readFileSync("webhookJson.json", "utf-8");
   data = JSON.parse(datafetch);
   console.log("Fetched data");
@@ -48,7 +56,7 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
   //push buy data
   const buyData = await extractBuys([event]);
   console.log("Buy data extracted from event:", buyData);
-  
+
   existingBuys.push(...buyData);
   fs.writeFileSync("buys.json", JSON.stringify(existingBuys, null, 2));
   buyHistory = existingBuys;
