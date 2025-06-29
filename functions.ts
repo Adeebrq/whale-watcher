@@ -51,48 +51,72 @@ async function solPriceFetch(): Promise<number | null> {
   console.log(cachedPrice, "cachedPrice")
   return cachedPrice;
 }
-
 export async function extractBuys(transactions: any) {
-  const buys = [];
-  let solPrice = await solPriceFetch();
-
-  for (const tx of transactions || []) {
-    let solSpentBy = null;
-    let solSpent = 0;
-    let memecoinReceived = null;
-
-    for (const acc of tx.accountData || []) {
-      if (acc.nativeBalanceChange < 0) {
-        solSpentBy = acc.account;
-        solSpent += Math.abs(acc.nativeBalanceChange);
-      }
-
-      for (const tokenChange of acc.tokenBalanceChanges || []) {
-        if (
-          parseFloat(tokenChange.rawTokenAmount.tokenAmount) > 0 &&
-          isMemecoin(tokenChange.mint)
-        ) {
-          memecoinReceived = {
-            user: tokenChange.userAccount,
+    const buys = [];
+    let solPrice = await solPriceFetch();
+  
+    for (const tx of transactions || []) {
+      console.log("Processing transaction:", tx.signature);
+      
+      let solSpentBy = null;
+      let solSpent = 0;
+      let memecoinReceived = null;
+  
+      for (const acc of tx.accountData || []) {
+        // Debug: Log native balance changes
+        if (acc.nativeBalanceChange < 0) {
+          console.log(`SOL spent by: ${acc.account}, amount: ${Math.abs(acc.nativeBalanceChange)}`);
+          solSpentBy = acc.account;
+          solSpent += Math.abs(acc.nativeBalanceChange);
+        }
+  
+        for (const tokenChange of acc.tokenBalanceChanges || []) {
+          console.log("Token change:", {
             mint: tokenChange.mint,
-          };
+            tokenAmount: tokenChange.rawTokenAmount.tokenAmount,
+            userAccount: tokenChange.userAccount,
+            isMemecoin: isMemecoin(tokenChange.mint),
+            isPositive: parseFloat(tokenChange.rawTokenAmount.tokenAmount) > 0
+          });
+  
+          if (
+            parseFloat(tokenChange.rawTokenAmount.tokenAmount) > 0 &&
+            isMemecoin(tokenChange.mint)
+          ) {
+            console.log("Found memecoin received:", {
+              user: tokenChange.userAccount,
+              mint: tokenChange.mint
+            });
+            memecoinReceived = {
+              user: tokenChange.userAccount,
+              mint: tokenChange.mint,
+            };
+          }
         }
       }
-    }
-
-    if (
-      solSpentBy &&
-      memecoinReceived &&
-      solSpentBy === memecoinReceived.user
-    ) {
-      buys.push({
-        buyer: solSpentBy,
-        mint: memecoinReceived.mint,
-        solSpent: solSpent / 1e9,
-        usdBalance: solPrice !== null ? (solSpent / 1e9) * solPrice : null,
+  
+      console.log("Final check:", {
+        solSpentBy,
+        memecoinReceived,
+        match: solSpentBy && memecoinReceived && solSpentBy === memecoinReceived.user
       });
+  
+      if (
+        solSpentBy &&
+        memecoinReceived &&
+        solSpentBy === memecoinReceived.user
+      ) {
+        const buy = {
+          buyer: solSpentBy,
+          mint: memecoinReceived.mint,
+          solSpent: solSpent / 1e9,
+          usdBalance: solPrice !== null ? (solSpent / 1e9) * solPrice : null,
+        };
+        console.log("BUY DETECTED:", buy);
+        buys.push(buy);
+      }
     }
+  
+    console.log("Final buys array:", buys);
+    return buys;
   }
-
-  return buys;
-}
