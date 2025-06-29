@@ -28,7 +28,10 @@ async function solPriceFetch(): Promise<number | null> {
       cachedPrice = solUsd.solana.usd;
       lastFetchedTime = now;
     }
-  } catch {}
+  } catch(error) {
+    console.log("Coingecko API failed", error)
+  }
+
   try {
     const solUsdFetch2 = await fetch(
       "https://api.dexpaprika.com/networks/solana/tokens/So11111111111111111111111111111111111111112"
@@ -41,7 +44,11 @@ async function solPriceFetch(): Promise<number | null> {
       cachedPrice = solUsd2.summary.price_usd;
       lastFetchedTime = now;
     }
-  } catch {}
+  } catch(error) {
+    console.log("2nd api failed", error)
+
+  }
+  console.log(cachedPrice, "cachedPrice")
   return cachedPrice;
 }
 
@@ -49,7 +56,7 @@ export async function extractBuys(transactions: any) {
   const buys = [];
   let solPrice = await solPriceFetch();
 
-  for (const tx of transactions) {
+  for (const tx of transactions || []) {
     let solSpentBy = null;
     let solSpent = 0;
     let memecoinReceived = null;
@@ -60,7 +67,7 @@ export async function extractBuys(transactions: any) {
         solSpent += Math.abs(acc.nativeBalanceChange);
       }
 
-      for (const tokenChange of acc.tokenBalanceChanges) {
+      for (const tokenChange of acc.tokenBalanceChanges || []) {
         if (
           parseFloat(tokenChange.rawTokenAmount.tokenAmount) > 0 &&
           isMemecoin(tokenChange.mint)

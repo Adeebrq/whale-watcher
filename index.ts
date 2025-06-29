@@ -22,11 +22,6 @@ try {
   console.log("error occured", error);
 }
 
-app.get("/api", (req: Request, res: Response) => {
-  console.log("Server up!");
-  res.status(200).json("server is up");
-});
-
 app.post("/solana-webhook", async (req: Request, res: Response) => {
   const event = req.body;
   data = event;
