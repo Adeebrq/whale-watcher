@@ -54,7 +54,7 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
   fs.writeFileSync("webhookJson.json", JSON.stringify(existingData, null, 2));
 
   //push buy data
-  const buyData = await extractBuys([event]);
+  const buyData = await extractBuys(event);
   console.log("Buy data extracted from event:", buyData);
 
   existingBuys.push(...buyData);
