@@ -112,11 +112,8 @@ export async function extractBuys(transactions: any) {
           solSpent: solSpent / 1e9,
           usdBalance: solPrice !== null ? (solSpent / 1e9) * solPrice : null,
         };
-        console.log("BUY DETECTED:", buy);
         buys.push(buy);
       }
     }
-  
-    console.log("Final buys array:", buys);
     return buys;
   }

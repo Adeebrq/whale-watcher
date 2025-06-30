@@ -16,7 +16,10 @@
   "description": "",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "dotenv": "^17.0.0",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "oauth-1.0a": "^2.2.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

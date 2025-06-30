@@ -3,6 +3,7 @@ const app = express();
 import cors from "cors";
 import fs from "fs";
 import { extractBuys } from "./functions";
+import {postTweet} from "./twitter"
 
 app.use(express.json());
 app.use(cors());
@@ -21,11 +22,9 @@ try {
 
   const datafetch = fs.readFileSync("webhookJson.json", "utf-8");
   data = JSON.parse(datafetch);
-  console.log("Fetched data");
 
   const buyDataFetch = fs.readFileSync("buys.json", "utf-8");
   buyHistory = JSON.parse(buyDataFetch);
-  console.log("Buy data fetched");
 } catch (error) {
   console.log("error occured", error);
 }
@@ -55,16 +54,16 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
 
   //push buy data
   const buyData = await extractBuys(event);
-  console.log("Buy data extracted from event:", buyData);
-
   existingBuys.push(...buyData);
   fs.writeFileSync("buys.json", JSON.stringify(existingBuys, null, 2));
-  buyHistory = existingBuys;
+  buyHistory = existingBuys; // to update GET /buys
 
-  console.log("Webhook data posted- ", event);
-  console.log("Entire data- ", existingData);
-
-  console.log("Entire buy data- ", existingBuys);
+  // Posting to x
+  for (const buy of buyData){
+    const message= `A whale just bought $${buy.usdBalance?.toFixed(0)} of token name 
+     CA- ${buy.mint}`
+    await postTweet(message)
+  }
 
   res.status(200).json({ message: event });
 });
