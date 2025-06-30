@@ -25,7 +25,9 @@ async function getTokenValue(ca:string){
   })
 
   const data= await res.json()
+  console.log("data", data)
   const pricePerToken= data?.data?.value
+  console.log(pricePerToken, "pricePerToken1")
   return pricePerToken || 0
 }
 
@@ -156,6 +158,7 @@ export async function extractBuys(transactions: any) {
       ) {
         const {tokenSymbol, readableSupply}= await getTokenName(memecoinReceived.mint)
         const pricePerToken= await getTokenValue(memecoinReceived.mint)
+        console.log(pricePerToken, "pricePerToken")
         const buy = {
           buyer: solSpentBy,
           mint: memecoinReceived.mint,
