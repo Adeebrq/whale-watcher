@@ -11,6 +11,13 @@ app.use(cors());
 let data: any = null;
 let buyHistory: any = null;
 
+const formatAmount=(num: number | null)=>{
+  if(num === null) return "N/A";
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(2)+ "M"
+  if(num >= 1_000) return (num / 1_000).toFixed(1)+ 'K'
+    return num.toString()
+}
+
 try {
 
     if (!fs.existsSync("webhookJson.json",)) {
@@ -60,8 +67,7 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
 
   // Posting to x
   for (const buy of buyData){
-    const message= `A whale just bought $${buy.usdBalance?.toFixed(0)} of token name 
-     CA- ${buy.mint}`
+    const message = `A [\$${buy.tokenSymbol}](https://x.com/search?q=%24${buy.tokenSymbol}&src=cashtag_click) whale just bought \$${formatAmount(buy.usdBalance)} of [\$${buy.tokenSymbol}](https://x.com/search?q=%24${buy.tokenSymbol}&src=cashtag_click) at \$${formatAmount(buy.mrktCap)} MC! 🐳\n\nCA - ${buy.mint}`;
     console.log("Posting to X")
     await postTweet(message)
   }
