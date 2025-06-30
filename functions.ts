@@ -30,7 +30,8 @@ async function getTokenName(name: string){
 const data= await res.json()
 
 const tokenName= data?.result?.content?.metadata?.name
-const tokenSymbol= data?.result?.content?.metadata?.symbol
+const tokenSymbol= data?.result?.content?.metadata?.symbol || tokenName
+
 return {tokenName, tokenSymbol}
 
 }
