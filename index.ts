@@ -62,6 +62,7 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
   for (const buy of buyData){
     const message= `A whale just bought $${buy.usdBalance?.toFixed(0)} of token name 
      CA- ${buy.mint}`
+    console.log("Posting to X")
     await postTweet(message)
   }
 

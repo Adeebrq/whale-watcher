@@ -30,6 +30,8 @@ const token={
 export const postTweet= async(message: string)=>{
     const url = "https://api.twitter.com/1.1/statuses/update.json"
     const body = { status: message };
+    console.log("Preparing to send tweet:", body);
+
     try {
         const res = await fetch(url, {
             method: "POST",
@@ -41,6 +43,7 @@ export const postTweet= async(message: string)=>{
           });
 
         const data= await res.json()
+        console.log("Response from X:", data);
 
         if(res.ok){
             console.log("Posted to x successfully", data)
