@@ -1,6 +1,8 @@
 let cachedPrice: number | null = null;
 let lastFetchedTime: number = 0;
 
+const HELIUS= process.env.HELIUS_API_KEY;
+
 export function isMemecoin(token: string) {
   const stablecoins = [
     "So11111111111111111111111111111111111111112", // SOL wrapped
@@ -8,6 +10,29 @@ export function isMemecoin(token: string) {
     "Es9vMFrzaCERdhvjPYZ6zUM7XmoeR4eUuKXPX3uWzv1J", // USDT
   ];
   return !stablecoins.includes(token);
+}
+
+
+async function getTokenName(name: string){
+  const res= await fetch(`https://rpc.helius.xyz/?api-key=${HELIUS}`,{
+    method: "POST",
+    headers:{
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        "jsonrpc": "2.0",
+        "id": "1",
+        "method": "getAsset",
+        "params": [name]
+  })
+})
+
+const data= await res.json()
+
+const tokenName= data?.result?.content?.metadata?.name
+const tokenSymbol= data?.result?.content?.metadata?.symbol
+return {tokenName, tokenSymbol}
+
 }
 
 async function solPriceFetch(): Promise<number | null> {
@@ -106,9 +131,11 @@ export async function extractBuys(transactions: any) {
         memecoinReceived &&
         solSpentBy === memecoinReceived.user
       ) {
+        const {tokenSymbol}= await getTokenName(memecoinReceived.mint)
         const buy = {
           buyer: solSpentBy,
           mint: memecoinReceived.mint,
+          tokenSymbol: tokenSymbol,
           solSpent: solSpent / 1e9,
           usdBalance: solPrice !== null ? (solSpent / 1e9) * solPrice : null,
         };
