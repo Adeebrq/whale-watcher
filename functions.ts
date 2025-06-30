@@ -43,22 +43,18 @@ async function getTokenName(name: string){
         "params": [name]
   })
 })
-
 const data= await res.json()
 
 const tokenName= data?.result?.content?.metadata?.name
 const tokenSymbol= data?.result?.content?.metadata?.symbol || tokenName
 
 const tokenSupply= data?.result?.content?.token_info?.supply
-const tokenDecimal= data?.result?.content?.token_info?.decimal
-
+const tokenDecimal= data?.result?.content?.token_info?.decimal || 0
 const readableSupply= tokenSupply / Math.pow(10, tokenDecimal)
 
-
-
+console.log(readableSupply, tokenDecimal, tokenSupply)
 
 return {tokenName, tokenSymbol, tokenSupply, tokenDecimal, readableSupply}
-
 }
 
 async function solPriceFetch(): Promise<number | null> {
@@ -116,7 +112,6 @@ export async function extractBuys(transactions: any) {
       let memecoinReceived = null;
   
       for (const acc of tx.accountData || []) {
-        // Debug: Log native balance changes
         if (acc.nativeBalanceChange < 0) {
           console.log(`SOL spent by: ${acc.account}, amount: ${Math.abs(acc.nativeBalanceChange)}`);
           solSpentBy = acc.account;
@@ -169,6 +164,7 @@ export async function extractBuys(transactions: any) {
           usdBalance: solPrice !== null ? (solSpent / 1e9) * solPrice : null,
           mrktCap: readableSupply * pricePerToken
         };
+        console.log(buy.mrktCap)
         buys.push(buy);
       }
     }
