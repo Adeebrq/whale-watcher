@@ -28,24 +28,17 @@ const token={
 }
 
 export const postTweet= async(message: string)=>{
-    const url = "https://api.twitter.com/2/tweets"
-    const body= {'text': message}
-
-    const requestData={
-        url,
-        method: "POST"
-    }
-
-    const authHeader=oauth.toHeader(oauth.authorize(requestData, token))
+    const url = "https://api.twitter.com/1.1/statuses/update.json"
+    const body = { status: message };
     try {
-        const res= await fetch(url, {
+        const res = await fetch(url, {
             method: "POST",
-            headers:{
-                ...authHeader,
-                "Content-Type": "application/json"
+            headers: {
+              ...oauth.toHeader(oauth.authorize({ url, method: "POST" }, token)),
+              "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: JSON.stringify(body)
-        })
+            body: new URLSearchParams(body).toString(),
+          });
 
         const data= await res.json()
 
