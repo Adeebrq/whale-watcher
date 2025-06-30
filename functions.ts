@@ -2,6 +2,8 @@ let cachedPrice: number | null = null;
 let lastFetchedTime: number = 0;
 
 const HELIUS= process.env.HELIUS_API_KEY;
+const BIRDEYE= process.env.BIRDEYE_API_KEY!;
+
 
 export function isMemecoin(token: string) {
   const stablecoins = [
@@ -10,6 +12,21 @@ export function isMemecoin(token: string) {
     "Es9vMFrzaCERdhvjPYZ6zUM7XmoeR4eUuKXPX3uWzv1J", // USDT
   ];
   return !stablecoins.includes(token);
+}
+
+async function getTokenValue(ca:string){
+  const res= await fetch(`https://public-api.birdeye.so/defi/price?address=${ca}`, {
+    method: 'GET',
+    headers:{
+        'accept': 'application/json',
+        'x-chain': 'solana',
+        'X-API-KEY': BIRDEYE,
+    },
+  })
+
+  const data= await res.json()
+  const pricePerToken= data?.data?.value
+  return pricePerToken || 0
 }
 
 
@@ -32,7 +49,15 @@ const data= await res.json()
 const tokenName= data?.result?.content?.metadata?.name
 const tokenSymbol= data?.result?.content?.metadata?.symbol || tokenName
 
-return {tokenName, tokenSymbol}
+const tokenSupply= data?.result?.content?.token_info?.supply
+const tokenDecimal= data?.result?.content?.token_info?.decimal
+
+const readableSupply= tokenSupply / Math.pow(10, tokenDecimal)
+
+
+
+
+return {tokenName, tokenSymbol, tokenSupply, tokenDecimal, readableSupply}
 
 }
 
@@ -77,6 +102,8 @@ async function solPriceFetch(): Promise<number | null> {
   console.log(cachedPrice, "cachedPrice")
   return cachedPrice;
 }
+
+
 export async function extractBuys(transactions: any) {
     const buys = [];
     let solPrice = await solPriceFetch();
@@ -132,13 +159,15 @@ export async function extractBuys(transactions: any) {
         memecoinReceived &&
         solSpentBy === memecoinReceived.user
       ) {
-        const {tokenSymbol}= await getTokenName(memecoinReceived.mint)
+        const {tokenSymbol, readableSupply}= await getTokenName(memecoinReceived.mint)
+        const pricePerToken= await getTokenValue(memecoinReceived.mint)
         const buy = {
           buyer: solSpentBy,
           mint: memecoinReceived.mint,
           tokenSymbol: tokenSymbol,
           solSpent: solSpent / 1e9,
           usdBalance: solPrice !== null ? (solSpent / 1e9) * solPrice : null,
+          mrktCap: readableSupply * pricePerToken
         };
         buys.push(buy);
       }
