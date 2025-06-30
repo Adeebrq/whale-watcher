@@ -48,8 +48,8 @@ const data= await res.json()
 const tokenName= data?.result?.content?.metadata?.name
 const tokenSymbol= data?.result?.content?.metadata?.symbol || tokenName
 
-const tokenSupply= data?.result?.content?.token_info?.supply
-const tokenDecimal= data?.result?.content?.token_info?.decimal || 0
+const tokenSupply= data?.result?.token_info?.supply
+const tokenDecimal= data?.result?.token_info?.decimals || 0
 const readableSupply= tokenSupply / Math.pow(10, tokenDecimal)
 
 console.log(readableSupply, tokenDecimal, tokenSupply)
