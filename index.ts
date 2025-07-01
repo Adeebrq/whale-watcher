@@ -11,6 +11,9 @@ app.use(cors());
 let data: any = null;
 let buyHistory: any = null;
 
+let tweetCount: number= 0;
+let lastPostedAt: number=0;
+
 const formatAmount=(num: number | null)=>{
   if(num === null) return "N/A";
   if (num >= 1_000_000) return (num / 1_000_000).toFixed(2)+ "M"
@@ -65,11 +68,42 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
   fs.writeFileSync("buys.json", JSON.stringify(existingBuys, null, 2));
   buyHistory = existingBuys; // to update GET /buys
 
+
+  const now= Date.now()
+  const oneHour= 60*60*1000;
+  const today= new Date().toISOString().split("T")[0]
+  const lastPostedDate= new Date(lastPostedAt).toISOString().split('T')[0]
+
+  if (lastPostedDate !== today){
+    tweetCount=0
+  }
+
+
   // Posting to x
   for (const buy of buyData){
-    const message = `A [\$${buy.tokenSymbol}](https://x.com/search?q=%24${buy.tokenSymbol}&src=cashtag_click) whale just bought \$${formatAmount(buy.usdBalance)} of [\$${buy.tokenSymbol}](https://x.com/search?q=%24${buy.tokenSymbol}&src=cashtag_click) at \$${formatAmount(buy.mrktCap)} MC! 🐳\n\nCA - ${buy.mint}`;
-    console.log("Posting to X")
+
+    if(tweetCount >=15){
+      console.log("tweet count reached for the day")
+      break;
+    }
+
+    if(now - lastPostedAt < oneHour){
+      console.log("Currently in 1 hour cooldown")
+      break;
+    }
+
+
+    let message: string = ""
+    if(buy.mrktCap === 0 || buy.tokenSymbol.includes(' ')){
+      message = `A [\$${buy.tokenSymbol}](https://x.com/search?q=%24${buy.tokenSymbol}&src=cashtag_click) whale just bought \$${formatAmount(buy.usdBalance)} worth! 🐳⬇️\n\nCA: \`${buy.mint}\``;
+    }else{
+    message = `A [\$${buy.tokenSymbol}](https://x.com/search?q=%24${buy.tokenSymbol}&src=cashtag_click) whale just bought \$${formatAmount(buy.usdBalance)} of [\$${buy.tokenSymbol}](https://x.com/search?q=%24${buy.tokenSymbol}&src=cashtag_click) at \$${formatAmount(buy.mrktCap)} MC! 🐳\n\nCA - ${buy.mint}`;
+    }
+    console.log(`Posting to X post number (${tweetCount}/15) for today`)
     await postTweet(message)
+    tweetCount += 1
+    lastPostedAt= now
+    break;
   }
 
   res.status(200).json({ message: event });
