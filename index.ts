@@ -95,9 +95,9 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
 
     let message: string = ""
     if(buy.mrktCap === 0 || buy.tokenSymbol.includes(' ')){
-      message = `A ${buy.tokenSymbol} whale just bought \$${formatAmount(buy.usdBalance)} worth! 🐳⬇️\n\nCA: \`${buy.mint}\``;
+      message = `A ${buy.tokenSymbol} whale just bought \$${formatAmount(buy.usdBalance)} worth! 🐳 ⬇️\n\nCA: \`${buy.mint}\``;
     }else{
-    message = `A $${buy.tokenSymbol} whale just bought $${formatAmount(buy.usdBalance)} of $${buy.tokenSymbol} at ${formatAmount(buy.mrktCap)} MC! 🐳\n\nCA - ${buy.mint}`;
+    message = `A $${buy.tokenSymbol} whale just bought $${formatAmount(buy.usdBalance)} of $${buy.tokenSymbol} at $${formatAmount(buy.mrktCap)} MC! 🐳 ⬇️\n\nCA - ${buy.mint}`;
     }
     console.log(`Posting to X post number (${tweetCount}/15) for today`)
     await postTweet(message)
