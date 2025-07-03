@@ -6,6 +6,8 @@ let lastFetchedTime: number = 0;
 const HELIUS= process.env.HELIUS_API_KEY;
 const BIRDEYE= process.env.BIRDEYE_API_KEY!;
 const MORALIS=process.env.MORALIS_API_KEY!;
+await Moralis.start({"apiKey": MORALIS})
+
 
 
 export function isMemecoin(token: string) {
@@ -32,8 +34,6 @@ async function getTokenValue(ca:string){
   pricePerToken= data?.data?.value
 
   if (!pricePerToken){
-    await Moralis.start({"apiKey": MORALIS})
-
     const res= await Moralis.SolApi.token.getTokenPrice({
       "network": "mainnet",
       "address": ca
