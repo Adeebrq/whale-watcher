@@ -6,7 +6,17 @@ let lastFetchedTime: number = 0;
 const HELIUS= process.env.HELIUS_API_KEY;
 const BIRDEYE= process.env.BIRDEYE_API_KEY!;
 const MORALIS=process.env.MORALIS_API_KEY!;
-await Moralis.start({"apiKey": MORALIS})
+
+let moralisInitialized = false;
+
+export async function initMoralis() {
+  if (!moralisInitialized && !Moralis.Core.isStarted) {
+    await Moralis.start({
+      apiKey: process.env.MORALIS_API_KEY!,
+    });
+    moralisInitialized = true;
+  }
+}
 
 
 
@@ -20,6 +30,7 @@ export function isMemecoin(token: string) {
 }
 
 async function getTokenValue(ca:string){
+  await initMoralis();
   let data = null
   let pricePerToken: number | undefined= undefined
   const res= await fetch(`https://public-api.birdeye.so/defi/price?address=${ca}`, {
