@@ -104,6 +104,7 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
     await postTweet(message)
     tweetCount += 1
     lastPostedAt= now
+    break;
   }
 
   res.status(200).json({ message: event });
