@@ -13,7 +13,6 @@ let buyHistory: any = null;
 
 let tweetCount: number= 0;
 let lastPostedAt: number=0;
-// let isTweeting: boolean= false;
 
 const formatAmount=(num: number | null)=>{
   if(num === null) return "N/A";
@@ -21,23 +20,6 @@ const formatAmount=(num: number | null)=>{
   if(num >= 1_000) return (num / 1_000).toFixed(1)+ 'K'
     return Math.round(num).toString()
 }
-
-// setInterval(()=>{
-//   if(isTweeting){
-//     console.log("Tweet in progress, skipping clean up")
-//     return;
-//   }
-//   console.log("Cleaning up JSON files")
-//   try {
-//     fs.writeFileSync("webhookJson.json", "[]")
-//     fs.writeFileSync("buys.json", "[]")
-//     buyHistory= []
-//     data=[]
-//   } catch (error) {
-//     console.log("Error occured in clean up!", error)
-//   }
-
-// }, 60 * 60 * 1000)
 
 try {
 
@@ -99,22 +81,15 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
   // Posting to x
   for (const buy of buyData){
 
-    // if(isTweeting){
-    //   console.log("Already tweeting")
-    //   break
-    // }
-
     if(tweetCount >=15){
       console.log("tweet count reached for the day")
-      break
+      break;
     }
 
     if(now - lastPostedAt < oneHour){
       console.log("Currently in 1 hour cooldown")
-      break
-
+      break;
     }
-    // isTweeting= true
     let message: string = ""
     if (buy.mrktCap === 0 && buy.tokenSymbol.includes(' ')){
       message = `A whale just bought $${formatAmount(buy.usdBalance)} worth of tokens! 🐳\n\n🚨CA: ${buy.mint}\n https://gmgn.ai/sol/token/${buy.mint}`;
@@ -125,14 +100,14 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
     }else{
       message = `A whale just bought $${formatAmount(buy.usdBalance)} of $${buy.tokenSymbol} at $${formatAmount(buy.mrktCap)} MC! 🐳\n\n🚨CA: ${buy.mint}\n https://gmgn.ai/sol/token/${buy.mint}`;
     }
-    
-  console.log(`Posting to X post number (${tweetCount}/15) for today`)
+    console.log(`Posting to X post number (${tweetCount}/15) for today`)
     await postTweet(message)
     tweetCount += 1
     lastPostedAt= now
+    break;
   }
-  res.status(200).json({ message: "Webhook processed" });
 
+  res.status(200).json({ message: event });
 });
 
 app.get("/webhook", (req: Request, res: Response) => {

@@ -131,28 +131,15 @@ export async function extractBuys(transactions: any) {
   
       for (const acc of tx.accountData || []) {
         if (acc.nativeBalanceChange < 0) {
-          console.log(`SOL spent by: ${acc.account}, amount: ${Math.abs(acc.nativeBalanceChange)}`);
           solSpentBy = acc.account;
           solSpent += Math.abs(acc.nativeBalanceChange);
         }
   
         for (const tokenChange of acc.tokenBalanceChanges || []) {
-          console.log("Token change:", {
-            mint: tokenChange.mint,
-            tokenAmount: tokenChange.rawTokenAmount.tokenAmount,
-            userAccount: tokenChange.userAccount,
-            isMemecoin: isMemecoin(tokenChange.mint),
-            isPositive: parseFloat(tokenChange.rawTokenAmount.tokenAmount) > 0
-          });
-  
           if (
             parseFloat(tokenChange.rawTokenAmount.tokenAmount) > 0 &&
             isMemecoin(tokenChange.mint)
           ) {
-            console.log("Found memecoin received:", {
-              user: tokenChange.userAccount,
-              mint: tokenChange.mint
-            });
             memecoinReceived = {
               user: tokenChange.userAccount,
               mint: tokenChange.mint,
@@ -160,12 +147,6 @@ export async function extractBuys(transactions: any) {
           }
         }
       }
-  
-      console.log("Final check:", {
-        solSpentBy,
-        memecoinReceived,
-        match: solSpentBy && memecoinReceived && solSpentBy === memecoinReceived.user
-      });
   
       if (
         solSpentBy &&
