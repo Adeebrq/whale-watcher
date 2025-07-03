@@ -114,7 +114,6 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
       break
 
     }
-    try {
     // isTweeting= true
     let message: string = ""
     if (buy.mrktCap === 0 && buy.tokenSymbol.includes(' ')){
@@ -131,12 +130,6 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
     await postTweet(message)
     tweetCount += 1
     lastPostedAt= now
-    break;
-    } catch (error) {
-      console.log("error", error)
-    }finally{
-    // isTweeting= false
-    }
   }
   res.status(200).json({ message: "Webhook processed" });
 
