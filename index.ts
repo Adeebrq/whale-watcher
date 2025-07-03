@@ -21,6 +21,19 @@ const formatAmount=(num: number | null)=>{
     return Math.round(num).toString()
 }
 
+setInterval(()=>{
+  console.log("Cleaning up JSON files")
+  try {
+    fs.writeFileSync("webhookJson.json", "[]")
+    fs.writeFileSync("buys.json", "[]")
+    buyHistory= []
+    data=[]
+  } catch (error) {
+    console.log("Error occured in clean up!", error)
+  }
+
+}, 58 * 60 * 1000)
+
 try {
 
     if (!fs.existsSync("webhookJson.json",)) {
@@ -78,35 +91,25 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
     tweetCount=0
   }
 
-  // Posting to x
-  for (const buy of buyData){
+  if(buyData[0] && tweetCount <=15 && now - lastPostedAt > oneHour){
 
-    if(tweetCount >=15){
-      console.log("tweet count reached for the day")
-      break;
-    }
-
-    if(now - lastPostedAt < oneHour){
-      console.log("Currently in 1 hour cooldown")
-      break;
-    }
     let message: string = ""
-    if (buy.mrktCap === 0 && buy.tokenSymbol.includes(' ')){
-      message = `A whale just bought $${formatAmount(buy.usdBalance)} worth of tokens! 🐳\n\n🚨CA: ${buy.mint}\n https://gmgn.ai/sol/token/${buy.mint}`;
-    }else if(buy.tokenSymbol.includes(' ')){
-      message = `A whale just bought $${formatAmount(buy.usdBalance)} worth of tokens at $${formatAmount(buy.mrktCap)} MC! 🐳\n\n🚨CA: ${buy.mint}\n https://gmgn.ai/sol/token/${buy.mint}`;
-    }else if(buy.mrktCap === 0){
-      message = `A whale just bought $${formatAmount(buy.usdBalance)} worth of $${buy.tokenSymbol}! 🐳\n\n🚨CA: ${buy.mint}\n https://gmgn.ai/sol/token/${buy.mint}`;
+    if (buyData[0].mrktCap === 0 && buyData[0].tokenSymbol.includes(' ')){
+      message = `A whale just bought $${formatAmount(buyData[0].usdBalance)} worth of tokens! 🐳\n\n🚨CA: ${buyData[0].mint}\n https://gmgn.ai/sol/token/${buyData[0].mint}`;
+    }else if(buyData[0].tokenSymbol.includes(' ')){
+      message = `A whale just bought $${formatAmount(buyData[0].usdBalance)} worth of tokens at $${formatAmount(buyData[0].mrktCap)} MC! 🐳\n\n🚨CA: ${buyData[0].mint}\n https://gmgn.ai/sol/token/${buyData[0].mint}`;
+    }else if(buyData[0].mrktCap === 0){
+      message = `A whale just bought $${formatAmount(buyData[0].usdBalance)} worth of $${buyData[0].tokenSymbol}! 🐳\n\n🚨CA: ${buyData[0].mint}\n https://gmgn.ai/sol/token/${buyData[0].mint}`;
     }else{
-      message = `A whale just bought $${formatAmount(buy.usdBalance)} of $${buy.tokenSymbol} at $${formatAmount(buy.mrktCap)} MC! 🐳\n\n🚨CA: ${buy.mint}\n https://gmgn.ai/sol/token/${buy.mint}`;
+      message = `A whale just bought $${formatAmount(buyData[0].usdBalance)} of $${buyData[0].tokenSymbol} at $${formatAmount(buyData[0].mrktCap)} MC! 🐳\n\n🚨CA: ${buyData[0].mint}\n https://gmgn.ai/sol/token/${buyData[0].mint}`;
     }
     console.log(`Posting to X post number (${tweetCount}/15) for today`)
     await postTweet(message)
     tweetCount += 1
     lastPostedAt= now
-    break;
-  }
 
+
+  }
   res.status(200).json({ message: event });
 });
 
