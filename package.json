@@ -18,6 +18,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
+    "moralis": "^2.27.2",
     "node-fetch": "^3.3.2",
     "oauth-1.0a": "^2.2.6",
     "twitter-api-v2": "^1.24.0"

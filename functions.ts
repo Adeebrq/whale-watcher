@@ -1,8 +1,11 @@
+import Moralis from "moralis";
+
 let cachedPrice: number | null = null;
 let lastFetchedTime: number = 0;
 
 const HELIUS= process.env.HELIUS_API_KEY;
 const BIRDEYE= process.env.BIRDEYE_API_KEY!;
+const MORALIS=process.env.MORALIS_API_KEY!;
 
 
 export function isMemecoin(token: string) {
@@ -15,6 +18,8 @@ export function isMemecoin(token: string) {
 }
 
 async function getTokenValue(ca:string){
+  let data = null
+  let pricePerToken: number | undefined= undefined
   const res= await fetch(`https://public-api.birdeye.so/defi/price?address=${ca}`, {
     method: 'GET',
     headers:{
@@ -23,10 +28,21 @@ async function getTokenValue(ca:string){
         'X-API-KEY': BIRDEYE,
     },
   })
+  data= await res.json()
+  pricePerToken= data?.data?.value
 
-  const data= await res.json()
+  if (!pricePerToken){
+    await Moralis.start({"apiKey": MORALIS})
+
+    const res= await Moralis.SolApi.token.getTokenPrice({
+      "network": "mainnet",
+      "address": ca
+    })
+    data= res?.raw?.usdPrice
+    pricePerToken= data
+  }
+
   console.log("data", data)
-  const pricePerToken= data?.data?.value
   console.log(pricePerToken, "pricePerToken1")
   return pricePerToken || 0
 }
