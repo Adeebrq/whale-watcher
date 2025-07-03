@@ -13,7 +13,7 @@ let buyHistory: any = null;
 
 let tweetCount: number= 0;
 let lastPostedAt: number=0;
-let isTweeting: boolean= false;
+// let isTweeting: boolean= false;
 
 const formatAmount=(num: number | null)=>{
   if(num === null) return "N/A";
@@ -22,22 +22,22 @@ const formatAmount=(num: number | null)=>{
     return Math.round(num).toString()
 }
 
-setInterval(()=>{
-  if(isTweeting){
-    console.log("Tweet in progress, skipping clean up")
-    return;
-  }
-  console.log("Cleaning up JSON files")
-  try {
-    fs.writeFileSync("webhookJson.json", "[]")
-    fs.writeFileSync("buys.json", "[]")
-    buyHistory= []
-    data=[]
-  } catch (error) {
-    console.log("Error occured in clean up!", error)
-  }
+// setInterval(()=>{
+//   if(isTweeting){
+//     console.log("Tweet in progress, skipping clean up")
+//     return;
+//   }
+//   console.log("Cleaning up JSON files")
+//   try {
+//     fs.writeFileSync("webhookJson.json", "[]")
+//     fs.writeFileSync("buys.json", "[]")
+//     buyHistory= []
+//     data=[]
+//   } catch (error) {
+//     console.log("Error occured in clean up!", error)
+//   }
 
-}, 60 * 60 * 1000)
+// }, 60 * 60 * 1000)
 
 try {
 
@@ -99,10 +99,10 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
   // Posting to x
   for (const buy of buyData){
 
-    if(isTweeting){
-      console.log("Already tweeting")
-      break
-    }
+    // if(isTweeting){
+    //   console.log("Already tweeting")
+    //   break
+    // }
 
     if(tweetCount >=15){
       console.log("tweet count reached for the day")
@@ -115,7 +115,7 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
 
     }
     try {
-    isTweeting= true
+    // isTweeting= true
     let message: string = ""
     if (buy.mrktCap === 0 && buy.tokenSymbol.includes(' ')){
       message = `A whale just bought $${formatAmount(buy.usdBalance)} worth of tokens! 🐳\n\n🚨CA: ${buy.mint}\n https://gmgn.ai/sol/token/${buy.mint}`;
@@ -135,7 +135,7 @@ app.post("/solana-webhook", async (req: Request, res: Response) => {
     } catch (error) {
       console.log("error", error)
     }finally{
-    isTweeting= false
+    // isTweeting= false
     }
   }
   res.status(200).json({ message: "Webhook processed" });
